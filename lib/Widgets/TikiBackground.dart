@@ -20,6 +20,7 @@ class TikiBackground extends PositionComponent {
     bgFull = SpriteComponent(sprite: backgroundSprite);
 
     bgFull!.paint = Paint()
+      ..filterQuality = FilterQuality.none
       ..imageFilter = ImageFilter.blur(sigmaX: 20, sigmaY: 20)
       ..colorFilter = ColorFilter.mode(
         Colors.black.withAlpha((255.0 * 0.4).round()),
