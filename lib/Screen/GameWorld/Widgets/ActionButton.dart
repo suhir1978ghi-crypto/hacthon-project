@@ -1,48 +1,72 @@
-import 'package:flame/components.dart';
-import 'package:flame/events.dart';
 import 'package:flutter/material.dart';
 
-class ActionButton extends PositionComponent with TapCallbacks {
-  final String text;
-  final VoidCallback onPressed;
-  bool isSelected = false;
-  bool disabled = false;
-  ActionButton(this.text, Vector2 pos, this.onPressed)
-    : super(position: pos, size: Vector2(100, 50));
+import '../GameWorld.dart';
+
+class ActionBarOverlay extends StatelessWidget {
+  final GameWorld gameWorld;
+
+  const ActionBarOverlay({super.key, required this.gameWorld});
 
   @override
-  void render(Canvas canvas) {
-    final paint = Paint()
-      ..color = disabled
-          ? Colors.grey
-          : isSelected
-          ? Colors.orange
-          : Colors.black;
+  Widget build(BuildContext context) {
+    final player = gameWorld.turnManager.currentPlayer;
+    final used = gameWorld.actionManager.usedActions[player];
+    final selected = gameWorld.selectedAction;
 
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(size.toRect(), const Radius.circular(8)),
-      paint,
-    );
+    return SafeArea(
+      child: Align(
+        alignment: Alignment.bottomCenter,
+        child: Container(
+          margin: const EdgeInsets.all(12),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+          decoration: BoxDecoration(
+            color: Colors.black.withOpacity(0.7),
+            borderRadius: BorderRadius.circular(14),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: ActionType.values.map((action) {
+              final disabled = used.contains(action);
+              final isSelected = selected == action;
 
-    final tp = TextPainter(
-      text: TextSpan(
-        text: text,
-        style: const TextStyle(color: Colors.white),
+              return Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 6),
+                child: GestureDetector(
+                  onTap: disabled ? null : () => gameWorld.selectAction(action),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 10,
+                    ),
+                    decoration: BoxDecoration(
+                      color: disabled
+                          ? Colors.grey
+                          : isSelected
+                          ? Colors.orange
+                          : Colors.black,
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(
+                        color: isSelected
+                            ? Colors.orangeAccent
+                            : Colors.white24,
+                      ),
+                    ),
+                    child: Text(
+                      action.name.toUpperCase(),
+                      style: TextStyle(
+                        color: disabled ? Colors.white54 : Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+        ),
       ),
-      textDirection: TextDirection.ltr,
     );
-
-    tp.layout();
-    tp.paint(
-      canvas,
-      Offset(size.x / 2 - tp.width / 2, size.y / 2 - tp.height / 2),
-    );
-  }
-
-  @override
-  void onTapDown(TapDownEvent event) {
-    if (disabled) return;
-    onPressed();
   }
 }
 

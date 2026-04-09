@@ -9,7 +9,6 @@ import 'Controllers/ActionManager.dart';
 import 'Controllers/RoundManager.dart';
 import 'Controllers/TurnManager.dart';
 import 'Widgets/ActionButton.dart';
-import 'Widgets/ButtonController.dart';
 import 'Widgets/GameHUD.dart';
 import 'Widgets/HUDController.dart';
 import 'Widgets/PlayerPiece.dart';
@@ -25,7 +24,6 @@ class GameWorld extends Component with HasGameReference<TikiGameScreen> {
   late final TurnManager turnManager;
   late final ActionManager actionManager;
   late final RoundManager roundManager;
-  late final ButtonController buttonController;
   late final HUDController hudController;
 
   late final GameHUD hud;
@@ -41,28 +39,30 @@ class GameWorld extends Component with HasGameReference<TikiGameScreen> {
   Future<void> onLoad() async {
     final players = playerCount.value;
 
+    // 🔹 Managers
     positionManager = PositionManager(background);
     scoreManager = ScoreManager(players);
-
     turnManager = TurnManager(players);
     actionManager = ActionManager(players);
     roundManager = RoundManager(players);
 
+    // 🔹 HUD
     hud = GameHUD();
     hudController = HUDController(hud);
     add(hud);
 
-    buttonController = ButtonController(game);
-
+    // 🔹 Players
     tileIndices.addAll(List.generate(players, (_) => 0));
 
     for (int i = 0; i < players; i++) {
       final piece = PlayerPiece(playerId: i, index: i, onTap: (_) {});
+
       pieces.add(piece);
       add(piece);
       positionManager.moveToTile(piece, 0);
     }
 
+    // 🔹 Stack
     stackManager = TikiStackManager(
       game: game,
       parent: this,
@@ -72,45 +72,17 @@ class GameWorld extends Component with HasGameReference<TikiGameScreen> {
     stackManager.initLayout(background);
     await stackManager.initStack();
 
-    buttonController.createButtons(this, _onActionSelected);
+    // 🔹 Overlay ON
+    game.overlays.add('actionBar');
 
     _updateUI();
   }
 
-  void _onActionSelected(ActionType action) {
-    if (!actionManager.isAvailable(turnManager.currentPlayer, action)) return;
+  bool isRoundWaiting = false;
+  Future<void> continueAfterRound() async {
+    isRoundWaiting = false;
 
-    selectedAction = action;
-    _updateUI();
-  }
-
-  void _onTikiTap(int index) {
-    final player = turnManager.currentPlayer;
-
-    if (!actionManager.canPlay(player)) return;
-    if (!actionManager.isAvailable(player, selectedAction)) return;
-
-    stackManager.performAction(selectedAction, index);
-
-    actionManager.markUsed(player, selectedAction);
-
-    if (stackManager.isRoundOver() || actionManager.allPlayersFinished()) {
-      _endRound();
-      return;
-    }
-
-    turnManager.nextTurn();
-    _updateUI();
-  }
-
-  Future<void> _endRound() async {
-    final players = playerCount.value;
-
-    for (int i = 0; i < players; i++) {
-      final gained = scoreManager.calculateScore(i, stackManager.tikiStack);
-      scoreManager.addScore(i, gained);
-      _movePlayerForward(i, gained);
-    }
+    game.overlays.remove('roundResult');
 
     if (!roundManager.nextRound()) {
       _endGame();
@@ -124,21 +96,76 @@ class GameWorld extends Component with HasGameReference<TikiGameScreen> {
 
     _updateUI();
   }
+  // ================= ACTION SELECT =================
+
+  void selectAction(ActionType action) {
+    final player = turnManager.currentPlayer;
+
+    if (!actionManager.isAvailable(player, action)) return;
+
+    selectedAction = action;
+    _updateUI();
+  }
+
+  // ================= GAMEPLAY =================
+
+  void _onTikiTap(int index) {
+    if (isRoundWaiting) return;
+    final player = turnManager.currentPlayer;
+
+    if (!actionManager.canPlay(player)) return;
+    if (!actionManager.isAvailable(player, selectedAction)) return;
+
+    stackManager.performAction(selectedAction, index);
+    actionManager.markUsed(player, selectedAction);
+
+    if (stackManager.isRoundOver() || actionManager.allPlayersFinished()) {
+      _endRound();
+      return;
+    }
+
+    turnManager.nextTurn();
+    _updateUI();
+  }
+
+  // ================= ROUND =================
+
+  Future<void> _endRound() async {
+    final players = playerCount.value;
+
+    for (int i = 0; i < players; i++) {
+      final gained = scoreManager.calculateScore(i, stackManager.tikiStack);
+      scoreManager.addScore(i, gained);
+      _movePlayerForward(i, gained);
+    }
+
+    isRoundWaiting = true;
+
+    game.overlays.add('roundResult');
+
+    _updateUI();
+  }
+  // ================= UI =================
 
   void _updateUI() {
     final player = turnManager.currentPlayer;
-
-    buttonController.updateState(
-      actionManager.usedActions[player],
-      selectedAction,
-    );
 
     hudController.update(
       player: player,
       scores: scoreManager.scores,
       action: selectedAction.name,
     );
+
+    // 🔥 refresh overlay (important)
+    _refreshOverlay();
   }
+
+  void _refreshOverlay() {
+    game.overlays.remove('actionBar');
+    game.overlays.add('actionBar');
+  }
+
+  // ================= END GAME =================
 
   void _endGame() {
     final winner = scoreManager.scores.indexOf(
@@ -153,7 +180,11 @@ class GameWorld extends Component with HasGameReference<TikiGameScreen> {
         priority: 200,
       ),
     );
+
+    game.overlays.remove('actionBar');
   }
+
+  // ================= MOVEMENT =================
 
   void _movePlayerForward(int player, int steps) {
     tileIndices[player] += steps;
@@ -165,6 +196,8 @@ class GameWorld extends Component with HasGameReference<TikiGameScreen> {
     positionManager.moveToTile(pieces[player], tileIndices[player]);
   }
 
+  // ================= RESIZE =================
+
   @override
   void onGameResize(Vector2 size) {
     super.onGameResize(size);
@@ -173,8 +206,7 @@ class GameWorld extends Component with HasGameReference<TikiGameScreen> {
       positionManager.setToTile(pieces[i], tileIndices[i]);
     }
 
-    buttonController.updateLayout();
-
+    // 🔥 avoid concurrent modification crash
     Future.microtask(() => stackManager.layout());
   }
 }
