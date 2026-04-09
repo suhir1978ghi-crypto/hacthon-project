@@ -2,7 +2,7 @@ import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
 
 import 'Components/AudioManager.dart';
-import 'Screen/HomeScreen.dart';
+import 'Screen/HomeScreen/HomeScreen.dart';
 import 'Screen/TikiGameScreen.dart';
 
 Future<void> main() async {
@@ -10,9 +10,9 @@ Future<void> main() async {
   await AudioManager().init();
   runApp(
     GameWidget(
-      game: TikiGame(),
+      game: TikiGameScreen(),
       overlayBuilderMap: {
-        'home': (context, game) => HomeScreen(game: game as TikiGame),
+        'home': (context, game) => HomeScreen(game: game as TikiGameScreen),
       },
       initialActiveOverlays: const ['home'],
     ),

@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import '../Components/PositionManager.dart';
 import '../Widgets/TikiBackground.dart';
 
-class TikiGame extends FlameGame with TapCallbacks {
+class TikiGameScreen extends FlameGame with TapCallbacks {
   PositionManager? positionManager;
   late Tiki testTiki;
 

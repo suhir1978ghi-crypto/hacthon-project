@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flame_audio/flame_audio.dart';
 
 class AudioManager {
@@ -7,20 +9,58 @@ class AudioManager {
   AudioManager._internal();
 
   bool isMuted = false;
+  double _volume = 1.0;
+  Timer? _fadeTimer;
 
   Future<void> init() async {
     await FlameAudio.audioCache.load('background.mp3');
     FlameAudio.bgm.initialize();
-    FlameAudio.bgm.play('background.mp3', volume: 1.0);
+    FlameAudio.bgm.play('background.mp3', volume: _volume);
   }
 
   void toggleMute() {
     isMuted = !isMuted;
 
     if (isMuted) {
-      FlameAudio.bgm.pause();
+      _fadeOut();
     } else {
-      FlameAudio.bgm.resume();
+      _fadeIn();
     }
+  }
+
+  void _fadeOut() {
+    _fadeTimer?.cancel();
+
+    _fadeTimer = Timer.periodic(const Duration(milliseconds: 50), (
+      timer,
+    ) async {
+      _volume -= 0.05;
+
+      if (_volume <= 0) {
+        _volume = 0;
+        await FlameAudio.bgm.audioPlayer.setVolume(0);
+        timer.cancel();
+      } else {
+        await FlameAudio.bgm.audioPlayer.setVolume(_volume);
+      }
+    });
+  }
+
+  void _fadeIn() {
+    _fadeTimer?.cancel();
+
+    _fadeTimer = Timer.periodic(const Duration(milliseconds: 50), (
+      timer,
+    ) async {
+      _volume += 0.05;
+
+      if (_volume >= 1) {
+        _volume = 1;
+        await FlameAudio.bgm.audioPlayer.setVolume(1);
+        timer.cancel();
+      } else {
+        await FlameAudio.bgm.audioPlayer.setVolume(_volume);
+      }
+    });
   }
 }
