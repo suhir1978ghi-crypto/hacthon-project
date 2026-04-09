@@ -2,7 +2,7 @@ import 'package:flame/components.dart';
 import 'package:flame/effects.dart';
 import 'package:flutter/material.dart';
 
-import '../Screen/TikiGameScreen.dart';
+import '../Widgets/PlayerPiece.dart';
 
 class PositionManager {
   final SpriteComponent background;
@@ -56,22 +56,25 @@ class PositionManager {
     );
   }
 
-  void setToTile(Tiki tiki, int tileIndex) {
+  void setToTile(PlayerPiece piece, int tileIndex) {
     final pos = getTilePosition(tileIndex);
 
-    tiki.children.whereType<MoveEffect>().toList().forEach(
+    piece.children.whereType<MoveEffect>().toList().forEach(
       (e) => e.removeFromParent(),
     );
 
-    tiki.position = Vector2(pos.x - tiki.size.x / 2, pos.y - tiki.size.y / 2);
+    piece.position = Vector2(
+      pos.x - piece.size.x / 2,
+      pos.y - piece.size.y / 2,
+    );
   }
 
-  void moveToTile(Tiki tiki, int tileIndex) {
+  void moveToTile(PlayerPiece piece, int tileIndex) {
     final pos = getTilePosition(tileIndex);
 
-    tiki.add(
+    piece.add(
       MoveEffect.to(
-        Vector2(pos.x - tiki.size.x / 2, pos.y - tiki.size.y / 2),
+        Vector2(pos.x - piece.size.x / 2, pos.y - piece.size.y / 2),
         EffectController(duration: 0.3, curve: Curves.easeOut),
       ),
     );

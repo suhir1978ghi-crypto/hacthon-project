@@ -1,10 +1,10 @@
 {
   "roots": [
-    "mystery_game"
+    "tiki_topple"
   ],
   "packages": [
     {
-      "name": "mystery_game",
+      "name": "tiki_topple",
       "version": "1.0.0+1",
       "dependencies": [
         "cupertino_icons",

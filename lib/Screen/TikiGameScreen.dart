@@ -1,10 +1,10 @@
-import 'package:flame/components.dart';
 import 'package:flame/events.dart';
 import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../Widgets/TikiBackground.dart';
+import 'GameWorld/Components/PlayerCount.dart';
 import 'GameWorld/GameWorld.dart';
 
 class TikiGameScreen extends FlameGame with KeyboardEvents {
@@ -20,7 +20,7 @@ class TikiGameScreen extends FlameGame with KeyboardEvents {
     await bg!.loaded;
   }
 
-  Future<void> startGame({int players = 2}) async {
+  Future<void> startGame({PlayerCount players = PlayerCount.two}) async {
     if (started) return;
 
     started = true;
@@ -77,71 +77,5 @@ class TikiGameScreen extends FlameGame with KeyboardEvents {
     }
 
     return KeyEventResult.ignored;
-  }
-}
-
-class Tiki extends PositionComponent with TapCallbacks {
-  final int player;
-  int index;
-  final Function(Tiki) onTap;
-
-  static const double sizeValue = 60;
-
-  Tiki({required this.player, required this.index, required this.onTap})
-    : super(size: Vector2.all(sizeValue));
-
-  @override
-  void render(Canvas canvas) {
-    final colors = [Colors.red, Colors.blue];
-    final paint = Paint()..color = colors[player];
-
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(
-        Rect.fromLTWH(0, 0, size.x, size.y),
-        const Radius.circular(12),
-      ),
-      paint,
-    );
-  }
-
-  @override
-  void onTapDown(TapDownEvent event) {
-    onTap(this);
-  }
-}
-
-class ActionButton extends PositionComponent with TapCallbacks {
-  final String text;
-  final VoidCallback onPressed;
-
-  ActionButton(this.text, Vector2 pos, this.onPressed)
-    : super(position: pos, size: Vector2(120, 60));
-
-  @override
-  void render(Canvas canvas) {
-    final paint = Paint()..color = Colors.black;
-    canvas.drawRect(size.toRect(), paint);
-
-    final textPainter = TextPainter(
-      text: TextSpan(
-        text: text,
-        style: const TextStyle(color: Colors.white, fontSize: 16),
-      ),
-      textDirection: TextDirection.ltr,
-    );
-
-    textPainter.layout();
-    textPainter.paint(
-      canvas,
-      Offset(
-        size.x / 2 - textPainter.width / 2,
-        size.y / 2 - textPainter.height / 2,
-      ),
-    );
-  }
-
-  @override
-  void onTapDown(TapDownEvent event) {
-    onPressed();
   }
 }

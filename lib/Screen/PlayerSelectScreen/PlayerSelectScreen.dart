@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../Widgets/GlassButton.dart';
+import '../GameWorld/Components/PlayerCount.dart';
 import '../TikiGameScreen.dart';
 import 'Widget/PlayerTile.dart';
 
@@ -62,7 +63,9 @@ class _PlayerSelectScreenState extends State<PlayerSelectScreen> {
                 text: "START",
                 onTap: () async {
                   if (!widget.game.started) {
-                    await widget.game.startGame();
+                    await widget.game.startGame(
+                      players: PlayerCount.values[selectedPlayers - 2],
+                    );
                   }
                   widget.game.overlays.remove('playerSelect');
                 },
