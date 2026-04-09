@@ -4,10 +4,19 @@ import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
 
 import '../Components/PositionManager.dart';
+import 'Screen/HomeScreen.dart';
 import 'Widgets/TikiBackground.dart';
 
 void main() {
-  runApp(GameWidget(game: TikiGame()));
+  runApp(
+    GameWidget(
+      game: TikiGame(),
+      overlayBuilderMap: {
+        'home': (context, game) => HomeScreen(game: game as TikiGame),
+      },
+      initialActiveOverlays: const ['home'],
+    ),
+  );
 }
 
 class TikiGame extends FlameGame with TapCallbacks {
@@ -15,6 +24,10 @@ class TikiGame extends FlameGame with TapCallbacks {
   late Tiki testTiki;
 
   int currentTile = 0;
+  void startPlayerSetup() {
+    overlays.remove('home');
+    //overlays.add('playerSetup');
+  }
 
   @override
   Future<void> onLoad() async {
