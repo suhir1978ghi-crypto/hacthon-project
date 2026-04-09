@@ -1,21 +1,23 @@
 import 'dart:ui';
 
 import 'package:flame/components.dart';
+import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
 
-class TikiBackground extends Component with HasGameRef {
+class TikiBackground extends PositionComponent {
   SpriteComponent? background;
   SpriteComponent? bgFull;
-  late Sprite backgroundSprite;
+  Sprite? backgroundSprite;
+
+  FlameGame get game => findGame() as FlameGame;
 
   @override
   Future<void> onLoad() async {
-    backgroundSprite = await gameRef.loadSprite('board.png');
+    size = game.size;
 
-    bgFull = SpriteComponent(
-      sprite: backgroundSprite,
-      position: Vector2.zero(),
-    );
+    backgroundSprite = await game.loadSprite('board.png');
+
+    bgFull = SpriteComponent(sprite: backgroundSprite);
 
     bgFull!.paint = Paint()
       ..imageFilter = ImageFilter.blur(sigmaX: 20, sigmaY: 20)
@@ -38,14 +40,15 @@ class TikiBackground extends Component with HasGameRef {
   }
 
   void _resizeBgFull() {
-    bgFull?.size = gameRef.size;
+    bgFull?.size = game.size;
     bgFull?.position = Vector2.zero();
   }
 
   void _resizeBackground() {
-    final image = backgroundSprite.image;
+    final image = backgroundSprite?.image;
+    if (image == null) return;
 
-    final screen = gameRef.size;
+    final screen = game.size;
     final screenRatio = screen.x / screen.y;
     final imageRatio = image.width / image.height;
 
