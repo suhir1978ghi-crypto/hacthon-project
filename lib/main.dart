@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 import 'Components/AudioManager.dart';
 import 'Screen/HomeScreen/HomeScreen.dart';
+import 'Screen/PauseScreen/PauseScreen.dart';
 import 'Screen/TikiGameScreen.dart';
 
 Future<void> main() async {
@@ -13,6 +14,8 @@ Future<void> main() async {
       game: TikiGameScreen(),
       overlayBuilderMap: {
         'home': (context, game) => HomeScreen(game: game as TikiGameScreen),
+
+        'pause': (context, game) => PauseScreen(game: game as TikiGameScreen),
       },
       initialActiveOverlays: const ['home'],
     ),

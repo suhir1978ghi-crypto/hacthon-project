@@ -2,54 +2,89 @@ import 'package:flame/components.dart';
 import 'package:flame/events.dart';
 import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../Components/PositionManager.dart';
 import '../Widgets/TikiBackground.dart';
+import 'GameWorld/GameWorld.dart';
 
-class TikiGameScreen extends FlameGame with TapCallbacks {
+class TikiGameScreen extends FlameGame with KeyboardEvents {
   PositionManager? positionManager;
-  late Tiki testTiki;
+  GameWorld? gameWorld;
 
-  int currentTile = 0;
-  void startPlayerSetup() {
-    overlays.remove('home');
-    //overlays.add('playerSetup');
-  }
+  bool started = false;
 
   @override
   Future<void> onLoad() async {
     final bg = TikiBackground();
     await add(bg);
     await bg.loaded;
+
     positionManager = PositionManager(bg.background!);
+  }
 
-    testTiki = Tiki(player: 0, index: 0, onTap: (_) {});
-    add(testTiki);
+  Future<void> startGame() async {
+    if (started || positionManager == null) return;
 
-    positionManager!.moveToTile(testTiki, 0);
+    started = true;
 
-    add(
-      ActionButton("NEXT", Vector2(50, size.y - 120), () {
-        currentTile++;
+    gameWorld = GameWorld(positionManager!);
+    await add(gameWorld!);
 
-        if (currentTile >= positionManager!.tiles.length) {
-          currentTile = 0;
-        }
+    await Future.delayed(Duration.zero);
+  }
 
-        positionManager?.moveToTile(testTiki, currentTile);
-      }),
-    );
+  Future<void> resetGame() async {
+    if (gameWorld != null) {
+      gameWorld!.removeFromParent();
+      gameWorld = null;
+    }
+
+    started = false;
+  }
+
+  void pauseGame() {
+    if (!started) return;
+
+    overlays.add('pause');
+    pauseEngine();
+  }
+
+  void resumeGame() {
+    overlays.remove('pause');
+    resumeEngine();
+  }
+
+  Future<void> goToHome() async {
+    await resetGame();
+
+    overlays.remove('pause');
+    overlays.add('home');
+
+    resumeEngine();
   }
 
   @override
-  void onGameResize(Vector2 size) {
-    super.onGameResize(size);
+  KeyEventResult onKeyEvent(
+    KeyEvent event,
+    Set<LogicalKeyboardKey> keysPressed,
+  ) {
+    if (!started) return KeyEventResult.ignored;
 
-    positionManager?.setToTile(testTiki, currentTile);
+    if (event is KeyDownEvent &&
+        event.logicalKey == LogicalKeyboardKey.escape) {
+      if (overlays.isActive('pause')) {
+        resumeGame();
+      } else {
+        pauseGame();
+      }
+
+      return KeyEventResult.handled;
+    }
+
+    return KeyEventResult.ignored;
   }
 }
-
-// ================= TIKI =================
 
 class Tiki extends PositionComponent with TapCallbacks {
   final int player;

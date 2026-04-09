@@ -49,7 +49,6 @@ class _AnimatedTitleState extends State<AnimatedTitle>
           child: Stack(
             alignment: Alignment.center,
             children: [
-              // 🔥 Glow layer
               Text(
                 "Tiki Topple",
                 style: TextStyle(
@@ -64,7 +63,6 @@ class _AnimatedTitleState extends State<AnimatedTitle>
                 ),
               ),
 
-              // ✨ Main text
               const Text(
                 "Tiki Topple",
                 style: TextStyle(

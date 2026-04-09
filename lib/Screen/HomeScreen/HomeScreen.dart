@@ -18,10 +18,9 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  final audio = AudioManager();
   @override
   Widget build(BuildContext context) {
-    final audio = AudioManager();
-
     return Stack(
       children: [
         Container(
@@ -44,7 +43,13 @@ class _HomeScreenState extends State<HomeScreen> {
 
               GlassButton(
                 text: "PLAY",
-                onTap: () => widget.game.startPlayerSetup(),
+                onTap: () async {
+                  if (!widget.game.started) {
+                    await widget.game.startGame();
+                  }
+                  await Future.delayed(const Duration(milliseconds: 150));
+                  widget.game.overlays.remove('home');
+                },
               ),
               const SizedBox(height: 20),
               GlassButton(text: "EXIT", onTap: () => exit(0)),

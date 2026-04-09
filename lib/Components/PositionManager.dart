@@ -59,7 +59,9 @@ class PositionManager {
   void setToTile(Tiki tiki, int tileIndex) {
     final pos = getTilePosition(tileIndex);
 
-    tiki.children.whereType<MoveEffect>().forEach((e) => e.removeFromParent());
+    tiki.children.whereType<MoveEffect>().toList().forEach(
+      (e) => e.removeFromParent(),
+    );
 
     tiki.position = Vector2(pos.x - tiki.size.x / 2, pos.y - tiki.size.y / 2);
   }
