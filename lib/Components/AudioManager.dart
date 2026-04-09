@@ -8,14 +8,17 @@ class AudioManager {
 
   AudioManager._internal();
 
-  bool isMuted = false;
+  bool isMuted = true; // TODO: set to false later
   double _volume = 1.0;
   Timer? _fadeTimer;
 
   Future<void> init() async {
     await FlameAudio.audioCache.load('background.mp3');
-    FlameAudio.bgm.initialize();
-    FlameAudio.bgm.play('background.mp3', volume: _volume);
+    await FlameAudio.bgm.initialize();
+
+    _volume = isMuted ? 0 : 1;
+
+    await FlameAudio.bgm.play('background.mp3', volume: _volume);
   }
 
   void toggleMute() {
@@ -48,7 +51,7 @@ class AudioManager {
 
   void _fadeIn() {
     _fadeTimer?.cancel();
-
+    FlameAudio.bgm.resume();
     _fadeTimer = Timer.periodic(const Duration(milliseconds: 50), (
       timer,
     ) async {

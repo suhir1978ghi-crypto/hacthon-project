@@ -41,18 +41,21 @@ class _GlassButtonState extends State<GlassButton> {
   @override
   Widget build(BuildContext context) {
     return MouseRegion(
+      cursor: SystemMouseCursors.click,
       onEnter: (_) => _onHover(true),
       onExit: (_) => _onHover(false),
       child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
         onTapDown: _onTapDown,
         onTapUp: _onTapUp,
         onTapCancel: _onTapCancel,
         child: AnimatedScale(
           scale: scale,
-          duration: const Duration(milliseconds: 140),
-          curve: Curves.easeOut,
+          duration: const Duration(milliseconds: 120),
+          curve: Curves.easeOutCubic,
           child: AnimatedContainer(
-            duration: const Duration(milliseconds: 200),
+            duration: const Duration(milliseconds: 180),
+            curve: Curves.easeOutCubic,
             width: 240,
             height: 65,
             decoration: BoxDecoration(
@@ -61,27 +64,56 @@ class _GlassButtonState extends State<GlassButton> {
                 color: isHovered ? Colors.orangeAccent : Colors.white24,
                 width: isHovered ? 1.5 : 1,
               ),
-              boxShadow: isHovered
-                  ? [
-                      BoxShadow(
-                        color: Colors.orangeAccent.withValues(alpha: 0.4),
-                        blurRadius: 20,
-                        spreadRadius: 1,
-                      ),
-                    ]
-                  : [],
+
+              boxShadow: [
+                if (isHovered)
+                  BoxShadow(
+                    color: Colors.orangeAccent.withValues(alpha: 0.35),
+                    blurRadius: 18,
+                    spreadRadius: 1,
+                  ),
+
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.3),
+                  blurRadius: scale < 1 ? 4 : 10,
+                  offset: Offset(0, scale < 1 ? 2 : 6),
+                ),
+              ],
             ),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(18),
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
-                child: Container(
-                  color: isHovered
-                      ? Colors.white.withValues(alpha: 0.08)
-                      : Colors.white.withValues(alpha: 0.05),
-                  child: Center(
+              child: Stack(
+                children: [
+                  BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+                    child: Container(
+                      color: isHovered
+                          ? Colors.white.withValues(alpha: 0.08)
+                          : Colors.white.withValues(alpha: 0.05),
+                    ),
+                  ),
+
+                  AnimatedOpacity(
+                    duration: const Duration(milliseconds: 200),
+                    opacity: isHovered ? 1 : 0,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.center,
+                          colors: [
+                            Colors.white.withValues(alpha: 0.12),
+                            Colors.transparent,
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  Center(
                     child: AnimatedDefaultTextStyle(
-                      duration: const Duration(milliseconds: 150),
+                      duration: const Duration(milliseconds: 120),
+                      curve: Curves.easeOut,
                       style: TextStyle(
                         fontSize: 20,
                         letterSpacing: 1.5,
@@ -91,7 +123,7 @@ class _GlassButtonState extends State<GlassButton> {
                       child: Text(widget.text),
                     ),
                   ),
-                ),
+                ],
               ),
             ),
           ),

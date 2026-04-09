@@ -51,7 +51,7 @@ class _PauseScreenState extends State<PauseScreen> {
               const SizedBox(height: 20),
 
               GlassButton(
-                text: "RETURN TO HOME SCREEN",
+                text: "HOME",
                 onTap: () {
                   widget.game.goToHome();
                 },

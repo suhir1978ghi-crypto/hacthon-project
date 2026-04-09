@@ -4,34 +4,27 @@ import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import '../Components/PositionManager.dart';
 import '../Widgets/TikiBackground.dart';
 import 'GameWorld/GameWorld.dart';
 
 class TikiGameScreen extends FlameGame with KeyboardEvents {
-  PositionManager? positionManager;
+  TikiBackground? bg;
   GameWorld? gameWorld;
 
   bool started = false;
 
   @override
   Future<void> onLoad() async {
-    final bg = TikiBackground();
-    await add(bg);
-    await bg.loaded;
-
-    positionManager = PositionManager(bg.background!);
+    bg = TikiBackground();
+    await add(bg!);
+    await bg!.loaded;
   }
 
   Future<void> startGame() async {
-    if (started || positionManager == null) return;
-
+    if (started) return;
     started = true;
-
-    gameWorld = GameWorld(positionManager!);
+    gameWorld = GameWorld(bg!.background);
     await add(gameWorld!);
-
-    await Future.delayed(Duration.zero);
   }
 
   Future<void> resetGame() async {
@@ -39,13 +32,11 @@ class TikiGameScreen extends FlameGame with KeyboardEvents {
       gameWorld!.removeFromParent();
       gameWorld = null;
     }
-
     started = false;
   }
 
   void pauseGame() {
     if (!started) return;
-
     overlays.add('pause');
     pauseEngine();
   }
