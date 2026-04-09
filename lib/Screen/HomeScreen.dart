@@ -3,15 +3,23 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 
-import '../main.dart';
+import '../Components/AudioManager.dart';
+import 'TikiGameScreen.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   final TikiGame game;
 
   const HomeScreen({super.key, required this.game});
 
   @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  @override
   Widget build(BuildContext context) {
+    final audio = AudioManager();
+
     return Stack(
       children: [
         Container(
@@ -32,7 +40,10 @@ class HomeScreen extends StatelessWidget {
 
               const SizedBox(height: 60),
 
-              _glassButton(text: "PLAY", onTap: () => game.startPlayerSetup()),
+              _glassButton(
+                text: "PLAY",
+                onTap: () => widget.game.startPlayerSetup(),
+              ),
 
               const SizedBox(height: 20),
 
@@ -40,11 +51,46 @@ class HomeScreen extends StatelessWidget {
             ],
           ),
         ),
+
+        // 🔊 Mute button (CORRECT placement)
+        Positioned(
+          top: 40,
+          right: 20,
+          child: GestureDetector(
+            onTap: () {
+              setState(() {
+                audio.toggleMute();
+              });
+            },
+            child: _muteButton(audio.isMuted),
+          ),
+        ),
       ],
     );
   }
 
-  // ================= TITLE =================
+  Widget _muteButton(bool isMuted) {
+    return Container(
+      width: 50,
+      height: 50,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        border: Border.all(color: Colors.white24),
+      ),
+      child: ClipOval(
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
+          child: Container(
+            color: Colors.black.withOpacity(0.3),
+            child: Icon(
+              isMuted ? Icons.volume_off : Icons.volume_up,
+              color: Colors.white,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 
   Widget _animatedTitle() {
     return TweenAnimationBuilder(

@@ -2,7 +2,7 @@ import 'package:flame/components.dart';
 import 'package:flame/effects.dart';
 import 'package:flutter/material.dart';
 
-import '../main.dart';
+import '../Screen/TikiGameScreen.dart';
 
 class PositionManager {
   final SpriteComponent background;
