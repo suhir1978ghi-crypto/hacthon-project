@@ -4,16 +4,17 @@ import '../../Components/PositionManager.dart';
 import '../TikiGameScreen.dart';
 
 class GameWorld extends Component with HasGameReference<TikiGameScreen> {
-  SpriteComponent? bg;
+  final SpriteComponent background;
+  final int playerCount;
   late Tiki testTiki;
   int currentTile = 0;
   PositionManager? positionManager;
-  GameWorld(this.bg);
+  GameWorld(this.background, {required this.playerCount});
 
   @override
   Future<void> onLoad() async {
     await super.onLoad();
-    positionManager = PositionManager(bg!);
+    positionManager = PositionManager(background);
     testTiki = Tiki(player: 0, index: 0, onTap: (_) {});
     add(testTiki);
 

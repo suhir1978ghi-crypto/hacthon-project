@@ -20,10 +20,13 @@ class TikiGameScreen extends FlameGame with KeyboardEvents {
     await bg!.loaded;
   }
 
-  Future<void> startGame() async {
+  Future<void> startGame({int players = 2}) async {
     if (started) return;
+
     started = true;
-    gameWorld = GameWorld(bg!.background);
+
+    gameWorld = GameWorld(bg!.background!, playerCount: players);
+
     await add(gameWorld!);
   }
 

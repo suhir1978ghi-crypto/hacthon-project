@@ -44,11 +44,8 @@ class _HomeScreenState extends State<HomeScreen> {
               GlassButton(
                 text: "PLAY",
                 onTap: () async {
-                  if (!widget.game.started) {
-                    await widget.game.startGame();
-                  }
-                  await Future.delayed(const Duration(milliseconds: 150));
                   widget.game.overlays.remove('home');
+                  widget.game.overlays.add('playerSelect');
                 },
               ),
               const SizedBox(height: 20),
