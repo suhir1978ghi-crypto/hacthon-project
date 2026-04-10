@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flame/components.dart';
 import 'package:flame/effects.dart';
 import 'package:flame/game.dart';
@@ -26,18 +28,46 @@ class TikiStackManager {
     layoutHelper = TikiPositionManager(bg);
   }
 
+  // ================= INIT =================
+
   Future<void> initStack() async {
     tikiStack.clear();
 
-    for (int i = 0; i < 9; i++) {
-      final tiki = Tiki(id: i, onTap: () {})..size = Vector2.all(50);
+    final random = Random();
 
-      tiki.onTap = () {
-        final index = tikiStack.indexOf(tiki);
-        if (index != -1) {
-          onTap(index);
-        }
-      };
+    // ✅ 9 UNIQUE assets
+    final assets = [
+      'tikis/NUI.png',
+      'tikis/WIKIWIKI.png',
+      'tikis/NANI.png',
+      'tikis/KAPU.png',
+      'tikis/HUhHU.png',
+      'tikis/EEPO.png',
+      'tikis/AKAMAI.png',
+      'tikis/HOOKIPA.png',
+      'tikis/lOKAHI.png',
+    ]..shuffle();
+
+    // ✅ 3 of each symbol
+    final symbols = [
+      TikiSymbol.sun,
+      TikiSymbol.sun,
+      TikiSymbol.sun,
+      TikiSymbol.moon,
+      TikiSymbol.moon,
+      TikiSymbol.moon,
+      TikiSymbol.leaf,
+      TikiSymbol.leaf,
+      TikiSymbol.leaf,
+    ]..shuffle();
+
+    for (int i = 0; i < 9; i++) {
+      final tiki = Tiki(
+        index: i,
+        symbol: symbols[i],
+        asset: assets[i],
+        onTap: () => onTap(i),
+      );
 
       tikiStack.add(tiki);
       parent.add(tiki);
@@ -46,29 +76,34 @@ class TikiStackManager {
     layout(animated: false);
   }
 
+  // ================= LAYOUT =================
+
   void layout({bool animated = true}) {
     for (int i = 0; i < tikiStack.length; i++) {
       final tiki = tikiStack[i];
       final target = layoutHelper.getPosition(i) - tiki.size / 2;
-
-      if (!animated) {
-        tiki.position = target;
-        continue;
-      }
 
       final effects = tiki.children.whereType<MoveEffect>().toList();
       for (final e in effects) {
         e.removeFromParent();
       }
 
-      tiki.add(
-        MoveEffect.to(
-          target,
-          EffectController(duration: 0.35, curve: Curves.easeOutBack),
-        ),
-      );
+      if (!animated) {
+        tiki.position = target;
+      } else {
+        tiki.add(
+          MoveEffect.to(
+            target,
+            EffectController(duration: 0.35, curve: Curves.easeOutBack),
+          ),
+        );
+      }
+
+      tiki.priority = i;
     }
   }
+
+  // ================= ACTIONS =================
 
   void performAction(ActionType action, int index) {
     if (index < 0 || index >= tikiStack.length) return;
@@ -98,6 +133,7 @@ class TikiStackManager {
     if (index <= 0) return;
 
     final newIndex = (index - steps).clamp(0, tikiStack.length - 1);
+
     final tiki = tikiStack.removeAt(index);
     tikiStack.insert(newIndex, tiki);
   }
@@ -109,9 +145,12 @@ class TikiStackManager {
 
   void _toast() {
     if (tikiStack.isEmpty) return;
+
     final tiki = tikiStack.removeLast();
     tiki.removeFromParent();
   }
+
+  // ================= STATE =================
 
   bool isRoundOver() => tikiStack.length <= 3;
 

@@ -25,12 +25,12 @@ class ActionManager {
     ];
   }
 
-  bool canPlay(int player) {
-    return hands[player].isNotEmpty;
-  }
-
   bool isAvailable(int player, ActionType action) {
     return hands[player].contains(action);
+  }
+
+  bool canPlay(int player) {
+    return hands[player].isNotEmpty;
   }
 
   void markUsed(int player, ActionType action) {

@@ -10,7 +10,7 @@ class TikiPositionManager {
     Vector2(0.51, 0.3074),
     Vector2(0.51, 0.4019),
     Vector2(0.51, 0.4930),
-    Vector2(0.51, 0.5701),
+    Vector2(0.51, 0.5801),
     Vector2(0.51, 0.6637),
     Vector2(0.51, 0.7522),
     Vector2(0.51, 0.8415),

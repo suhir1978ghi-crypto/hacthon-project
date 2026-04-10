@@ -28,14 +28,31 @@ class _ActionBarOverlayState extends State<ActionBarOverlay> {
     });
   }
 
+  String getAsset(ActionType action) {
+    switch (action) {
+      case ActionType.up1:
+        return 'assets/images/cards/1.png';
+      case ActionType.up2:
+        return 'assets/images/cards/2.png';
+      case ActionType.up3:
+        return 'assets/images/cards/3.png';
+      case ActionType.topple:
+        return 'assets/images/cards/up.png';
+      case ActionType.toast:
+        return 'assets/images/cards/toast.png';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final player = widget.gameWorld.turnManager.currentPlayer;
     final hand = widget.gameWorld.actionManager.hands[player];
     final selected = widget.gameWorld.selectedAction;
+
     if (widget.gameWorld.isRoundWaiting) {
       return const SizedBox();
     }
+
     return SafeArea(
       child: Align(
         alignment: Alignment.bottomCenter,
@@ -63,25 +80,39 @@ class _ActionBarOverlayState extends State<ActionBarOverlay> {
             margin: const EdgeInsets.all(12),
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
             decoration: BoxDecoration(
-              color: Colors.black..withValues(alpha: 0.75),
-              borderRadius: BorderRadius.circular(16),
+              color: Colors.black.withOpacity(0.75),
+              borderRadius: BorderRadius.circular(18),
             ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: ActionType.values.map((action) {
-                final count = hand.where((a) => a == action).length;
 
-                final disabled = count == 0;
-                final isSelected = selected == action;
+            // 🔥 Animated hand update
+            child: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 250),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: ActionType.values.asMap().entries.map((entry) {
+                  final i = entry.key;
+                  final action = entry.value;
 
-                return _ActionButton(
-                  action: action,
-                  count: count,
-                  disabled: disabled,
-                  isSelected: isSelected,
-                  onTap: () => _select(action),
-                );
-              }).toList(),
+                  final count = hand.where((a) => a == action).length;
+
+                  return AnimatedSlide(
+                    duration: Duration(milliseconds: 300 + i * 50),
+                    offset: Offset(0, count > 0 ? 0 : 1),
+                    child: AnimatedOpacity(
+                      duration: const Duration(milliseconds: 300),
+                      opacity: count > 0 ? 1 : 0,
+                      child: _GameCard(
+                        key: ValueKey("${player}_${action.name}"),
+                        asset: getAsset(action),
+                        count: count,
+                        disabled: count == 0,
+                        isSelected: selected == action,
+                        onTap: () => _select(action),
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
             ),
           ),
         ),
@@ -90,15 +121,16 @@ class _ActionBarOverlayState extends State<ActionBarOverlay> {
   }
 }
 
-class _ActionButton extends StatefulWidget {
-  final ActionType action;
+class _GameCard extends StatefulWidget {
+  final String asset;
   final int count;
   final bool disabled;
   final bool isSelected;
   final VoidCallback onTap;
 
-  const _ActionButton({
-    required this.action,
+  const _GameCard({
+    super.key,
+    required this.asset,
     required this.count,
     required this.disabled,
     required this.isSelected,
@@ -106,11 +138,34 @@ class _ActionButton extends StatefulWidget {
   });
 
   @override
-  State<_ActionButton> createState() => _ActionButtonState();
+  State<_GameCard> createState() => _GameCardState();
 }
 
-class _ActionButtonState extends State<_ActionButton> {
+class _GameCardState extends State<_GameCard> {
   bool hovering = false;
+  bool removing = false;
+  int? previousCount;
+
+  @override
+  void initState() {
+    super.initState();
+    previousCount = widget.count;
+  }
+
+  @override
+  void didUpdateWidget(covariant _GameCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    // 🔥 reset if count comes back
+    if (widget.count > 0) {
+      removing = false;
+    }
+
+    // detect removal
+    if (oldWidget.count > 0 && widget.count == 0) {
+      setState(() => removing = true);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -121,65 +176,78 @@ class _ActionButtonState extends State<_ActionButton> {
         onExit: (_) => setState(() => hovering = false),
         child: GestureDetector(
           onTap: widget.disabled ? null : widget.onTap,
-          child: AnimatedScale(
-            scale: hovering ? 1.1 : 1.0,
-            duration: const Duration(milliseconds: 120),
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: widget.disabled
-                    ? Colors.grey.shade800
-                    : widget.isSelected
-                    ? Colors.orange
-                    : Colors.black,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: widget.isSelected
-                      ? Colors.orangeAccent
-                      : Colors.white24,
-                ),
-              ),
-              child: Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  Text(
-                    widget.action.name.toUpperCase(),
-                    style: TextStyle(
-                      color: widget.disabled ? Colors.white38 : Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 13,
-                    ),
-                  ),
+          child: AnimatedSlide(
+            duration: const Duration(milliseconds: 220),
+            curve: Curves.easeIn,
+            offset: removing ? const Offset(0, 1.5) : Offset.zero,
 
-                  Positioned(
-                    right: -18,
-                    top: -18,
-                    child: AnimatedSwitcher(
-                      duration: const Duration(milliseconds: 250),
-                      transitionBuilder: (child, anim) =>
-                          ScaleTransition(scale: anim, child: child),
-                      child: widget.count == 0
-                          ? const SizedBox()
-                          : Container(
-                              key: ValueKey(widget.count),
-                              padding: const EdgeInsets.all(5),
-                              decoration: const BoxDecoration(
-                                color: Colors.redAccent,
-                                shape: BoxShape.circle,
-                              ),
-                              child: Text(
-                                "${widget.count}",
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.bold,
-                                ),
+            child: AnimatedOpacity(
+              duration: const Duration(milliseconds: 200),
+              opacity: removing
+                  ? 0
+                  : widget.disabled
+                  ? 0.4
+                  : 1,
+
+              child: AnimatedScale(
+                scale: widget.isSelected
+                    ? 1.2
+                    : hovering
+                    ? 1.1
+                    : 1.0,
+                duration: const Duration(milliseconds: 150),
+
+                child: Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    // 🎴 CARD IMAGE
+                    Image.asset(
+                      widget.asset,
+                      width: 70,
+                      height: 100,
+                      fit: BoxFit.cover,
+                    ),
+
+                    if (widget.isSelected)
+                      Positioned.fill(
+                        child: Container(
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: Colors.orangeAccent,
+                              width: 2,
+                            ),
+                          ),
+                        ),
+                      ),
+
+                    // 🔢 COUNT BADGE
+                    if (widget.count > 0)
+                      Positioned(
+                        right: -10,
+                        top: -10,
+                        child: AnimatedSwitcher(
+                          duration: const Duration(milliseconds: 200),
+                          child: Container(
+                            key: ValueKey(widget.count),
+                            padding: const EdgeInsets.all(5),
+                            decoration: const BoxDecoration(
+                              color: Colors.red,
+                              shape: BoxShape.circle,
+                            ),
+                            child: Text(
+                              "${widget.count}",
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
                               ),
                             ),
-                    ),
-                  ),
-                ],
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
               ),
             ),
           ),

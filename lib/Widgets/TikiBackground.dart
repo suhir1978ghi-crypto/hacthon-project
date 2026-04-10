@@ -49,7 +49,10 @@ class TikiBackground extends PositionComponent {
     final image = backgroundSprite?.image;
     if (image == null) return;
 
-    final screen = game.size;
+    const reservedHeight = 120.0; // 🔥 space for cards
+
+    final screen = Vector2(game.size.x, game.size.y - reservedHeight);
+
     final screenRatio = screen.x / screen.y;
     final imageRatio = image.width / image.height;
 
@@ -64,9 +67,10 @@ class TikiBackground extends PositionComponent {
     }
 
     background?.size = Vector2(width, height);
+
     background?.position = Vector2(
-      (screen.x - width) / 2,
-      (screen.y - height) / 2,
+      (game.size.x - width) / 2,
+      (screen.y - height) / 2, // 🔥 center inside usable area
     );
   }
 

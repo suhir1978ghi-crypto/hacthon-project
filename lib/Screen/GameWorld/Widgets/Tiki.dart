@@ -1,24 +1,26 @@
+import 'dart:ui';
+
 import 'package:flame/components.dart';
 import 'package:flame/events.dart';
-import 'package:flutter/material.dart';
 
-class Tiki extends PositionComponent with TapCallbacks, HasPaint {
-  final int id;
-  VoidCallback onTap;
+enum TikiSymbol { sun, moon, leaf }
 
-  Tiki({required this.id, required this.onTap}) {
-    anchor = Anchor.topLeft;
-  }
+class Tiki extends SpriteComponent with TapCallbacks {
+  final int index;
+  final TikiSymbol symbol;
+  final String asset;
+  final VoidCallback onTap;
+
+  Tiki({
+    required this.index,
+    required this.symbol,
+    required this.asset,
+    required this.onTap,
+  }) : super(size: Vector2.all(80), anchor: Anchor.topLeft);
 
   @override
-  void render(Canvas canvas) {
-    final paint = Paint()
-      ..color = Colors.primaries[id % Colors.primaries.length];
-
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(size.toRect(), const Radius.circular(8)),
-      paint,
-    );
+  Future<void> onLoad() async {
+    sprite = await Sprite.load(asset); // ✅ safe
   }
 
   @override

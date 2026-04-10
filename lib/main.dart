@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'Components/AudioManager.dart';
 import 'Screen/GameWorld/Widgets/ActionButton.dart';
 import 'Screen/GameWorld/Widgets/RoundResults.dart';
+import 'Screen/GameWorld/Widgets/TargetCard.dart';
 import 'Screen/HomeScreen/HomeScreen.dart';
 import 'Screen/PauseScreen/PauseScreen.dart';
 import 'Screen/PlayerSelectScreen/PlayerSelectScreen.dart';
@@ -35,6 +36,26 @@ Future<void> main() async {
           if (g.gameWorld == null) return const SizedBox();
 
           return RoundResultOverlay(gameWorld: g.gameWorld!);
+        },
+        'targetCard': (context, game) {
+          final g = game as TikiGameScreen;
+          if (g.gameWorld == null) return const SizedBox();
+
+          final gw = g.gameWorld!;
+
+          return Stack(
+            children: [
+              Positioned(
+                top: 20,
+                right: 20,
+                child: TargetCard(
+                  targets: gw.scoreManager.getPlayerTargets(
+                    gw.turnManager.currentPlayer,
+                  ),
+                ),
+              ),
+            ],
+          );
         },
       },
       initialActiveOverlays: const ['home'],
