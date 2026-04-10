@@ -42,7 +42,7 @@ class PlayerPiece extends SpriteComponent with TapCallbacks {
     final pulse = 0.6 + 0.2 * sin(t);
 
     final glowPaint = Paint()
-      ..color = glowColors[playerId].withOpacity(pulse)
+      ..color = glowColors[playerId].withValues(alpha: pulse)
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 25);
 
     canvas.drawCircle(Offset(size.x / 2, size.y / 2), size.x * 0.75, glowPaint);
@@ -53,5 +53,41 @@ class PlayerPiece extends SpriteComponent with TapCallbacks {
   @override
   void onTapDown(TapDownEvent event) {
     onTap(this);
+    final tooltip = PlayerTooltip(
+      "Player ${playerId + 1}",
+      position.clone() + Vector2(size.x / 2, 0),
+    );
+
+    parent?.add(tooltip);
+  }
+}
+
+class PlayerTooltip extends TextComponent {
+  double lifetime = 1.2;
+
+  PlayerTooltip(String text, Vector2 position)
+    : super(
+        text: text,
+        position: position,
+        anchor: Anchor.center,
+        priority: 100,
+        textRenderer: TextPaint(
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            shadows: [Shadow(blurRadius: 8, color: Colors.black)],
+          ),
+        ),
+      );
+
+  @override
+  void update(double dt) {
+    super.update(dt);
+    position.y -= 20 * dt;
+    lifetime -= dt;
+    if (lifetime <= 0) {
+      removeFromParent();
+    }
   }
 }

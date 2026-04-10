@@ -2,31 +2,44 @@ import '../Widgets/ActionButton.dart';
 
 class ActionManager {
   final int playerCount;
-  late List<Set<ActionType>> usedActions;
+
+  late List<List<ActionType>> hands;
 
   ActionManager(this.playerCount) {
     reset();
   }
 
   void reset() {
-    usedActions = List.generate(playerCount, (_) => <ActionType>{});
+    hands = List.generate(playerCount, (_) => _generateHand());
+  }
+
+  List<ActionType> _generateHand() {
+    return [
+      ActionType.up1,
+      ActionType.up1,
+      ActionType.up2,
+      ActionType.up3,
+      ActionType.topple,
+      ActionType.toast,
+      ActionType.toast,
+    ];
   }
 
   bool canPlay(int player) {
-    return usedActions[player].length < ActionType.values.length;
+    return hands[player].isNotEmpty;
   }
 
   bool isAvailable(int player, ActionType action) {
-    return !usedActions[player].contains(action);
+    return hands[player].contains(action);
   }
 
   void markUsed(int player, ActionType action) {
-    usedActions[player].add(action);
+    hands[player].remove(action);
   }
 
   bool allPlayersFinished() {
-    for (final a in usedActions) {
-      if (a.length < ActionType.values.length) return false;
+    for (final hand in hands) {
+      if (hand.isNotEmpty) return false;
     }
     return true;
   }

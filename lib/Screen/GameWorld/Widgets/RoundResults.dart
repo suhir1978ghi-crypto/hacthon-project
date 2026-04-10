@@ -12,38 +12,60 @@ class RoundResultOverlay extends StatelessWidget {
     final scores = gameWorld.scoreManager.scores;
 
     return Container(
-      color: Colors.black.withOpacity(0.8),
+      color: Colors.black.withOpacity(0.7),
       child: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text(
-              "Round Over",
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 28,
-                fontWeight: FontWeight.bold,
+        child: AnimatedScale(
+          scale: 1,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOutBack,
+          child: AnimatedOpacity(
+            opacity: 1,
+            duration: const Duration(milliseconds: 300),
+            child: Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: Colors.black,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text(
+                    "Round Over",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 26,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  ...List.generate(scores.length, (i) {
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 4),
+                      child: Text(
+                        "Player ${i + 1}: ${scores[i]}",
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 18,
+                        ),
+                      ),
+                    );
+                  }),
+
+                  const SizedBox(height: 20),
+
+                  ElevatedButton(
+                    onPressed: () {
+                      gameWorld.continueAfterRound();
+                    },
+                    child: const Text("Next Round"),
+                  ),
+                ],
               ),
             ),
-            const SizedBox(height: 20),
-
-            // 🔥 Scores
-            ...List.generate(scores.length, (i) {
-              return Text(
-                "Player ${i + 1}: ${scores[i]}",
-                style: const TextStyle(color: Colors.white, fontSize: 18),
-              );
-            }),
-
-            const SizedBox(height: 30),
-
-            ElevatedButton(
-              onPressed: () {
-                gameWorld.continueAfterRound();
-              },
-              child: const Text("Next Round"),
-            ),
-          ],
+          ),
         ),
       ),
     );

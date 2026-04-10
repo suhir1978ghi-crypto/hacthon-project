@@ -5,11 +5,7 @@ class HUDController {
 
   HUDController(this.hud);
 
-  void update({
-    required int player,
-    required List<int> scores,
-    required String action,
-  }) {
-    hud.updateHUD(player: player, scoreList: scores, selectedAction: action);
+  void update({required int player, required List<int> scores}) {
+    hud.updateHUD(player: player, scoreList: scores);
   }
 }

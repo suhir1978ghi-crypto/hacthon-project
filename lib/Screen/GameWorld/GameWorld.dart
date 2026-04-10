@@ -1,4 +1,6 @@
 import 'package:flame/components.dart';
+import 'package:flame/effects.dart';
+import 'package:flutter/material.dart';
 
 import '../TikiGameScreen.dart';
 import 'Components/PlayerCount.dart';
@@ -59,7 +61,7 @@ class GameWorld extends Component with HasGameReference<TikiGameScreen> {
 
       pieces.add(piece);
       add(piece);
-      positionManager.moveToTile(piece, 0);
+      positionManager.moveToTile(piece, 0, pieces, tileIndices);
     }
 
     // 🔹 Stack
@@ -72,7 +74,6 @@ class GameWorld extends Component with HasGameReference<TikiGameScreen> {
     stackManager.initLayout(background);
     await stackManager.initStack();
 
-    // 🔹 Overlay ON
     game.overlays.add('actionBar');
 
     _updateUI();
@@ -145,18 +146,13 @@ class GameWorld extends Component with HasGameReference<TikiGameScreen> {
 
     _updateUI();
   }
-  // ================= UI =================
 
   void _updateUI() {
     final player = turnManager.currentPlayer;
 
-    hudController.update(
-      player: player,
-      scores: scoreManager.scores,
-      action: selectedAction.name,
-    );
-
-    // 🔥 refresh overlay (important)
+    hudController.update(player: player, scores: scoreManager.scores);
+    _updateActivePiece();
+    _highlightValidTikis();
     _refreshOverlay();
   }
 
@@ -165,7 +161,25 @@ class GameWorld extends Component with HasGameReference<TikiGameScreen> {
     game.overlays.add('actionBar');
   }
 
-  // ================= END GAME =================
+  void _highlightValidTikis() {
+    for (final tiki in stackManager.tikiStack) {
+      tiki.children.whereType<ColorEffect>().forEach(
+        (e) => e.removeFromParent(),
+      );
+
+      if (actionManager.isAvailable(
+        turnManager.currentPlayer,
+        selectedAction,
+      )) {
+        tiki.add(
+          ColorEffect(
+            Colors.orange.withValues(alpha: 0.3),
+            EffectController(duration: 0.5, alternate: true, infinite: true),
+          ),
+        );
+      }
+    }
+  }
 
   void _endGame() {
     final winner = scoreManager.scores.indexOf(
@@ -184,8 +198,6 @@ class GameWorld extends Component with HasGameReference<TikiGameScreen> {
     game.overlays.remove('actionBar');
   }
 
-  // ================= MOVEMENT =================
-
   void _movePlayerForward(int player, int steps) {
     tileIndices[player] += steps;
 
@@ -193,20 +205,51 @@ class GameWorld extends Component with HasGameReference<TikiGameScreen> {
       tileIndices[player] %= positionManager.tiles.length;
     }
 
-    positionManager.moveToTile(pieces[player], tileIndices[player]);
+    positionManager.moveToTile(
+      pieces[player],
+      tileIndices[player],
+      pieces,
+      tileIndices,
+    );
   }
 
-  // ================= RESIZE =================
+  void _updateActivePiece() {
+    final current = turnManager.currentPlayer;
+
+    for (int i = 0; i < pieces.length; i++) {
+      final piece = pieces[i];
+
+      piece.children.whereType<ScaleEffect>().forEach(
+        (e) => e.removeFromParent(),
+      );
+
+      if (i == current) {
+        piece.add(
+          ScaleEffect.to(
+            Vector2.all(1.3),
+            EffectController(duration: 0.3, curve: Curves.easeOutBack),
+          ),
+        );
+
+        piece.priority = 200;
+      } else {
+        piece.add(
+          ScaleEffect.to(Vector2.all(1.0), EffectController(duration: 0.2)),
+        );
+
+        piece.priority = 100;
+      }
+    }
+  }
 
   @override
   void onGameResize(Vector2 size) {
     super.onGameResize(size);
 
     for (int i = 0; i < pieces.length; i++) {
-      positionManager.setToTile(pieces[i], tileIndices[i]);
+      positionManager.setToTile(pieces[i], tileIndices[i], pieces, tileIndices);
     }
 
-    // 🔥 avoid concurrent modification crash
     Future.microtask(() => stackManager.layout());
   }
 }

@@ -2,7 +2,7 @@ import 'package:flame/components.dart';
 import 'package:flame/events.dart';
 import 'package:flutter/material.dart';
 
-class Tiki extends PositionComponent with TapCallbacks {
+class Tiki extends PositionComponent with TapCallbacks, HasPaint {
   final int id;
   VoidCallback onTap;
 

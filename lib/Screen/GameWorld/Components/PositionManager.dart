@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flame/components.dart';
 import 'package:flame/effects.dart';
 import 'package:flutter/material.dart';
@@ -10,6 +12,7 @@ class PositionManager {
   PositionManager(this.background);
 
   final List<Vector2> tiles = [
+    Vector2(0.2388, 0.9157),
     Vector2(0.1488, 0.8643),
     Vector2(0.2468, 0.8126),
     Vector2(0.1404, 0.7715),
@@ -56,27 +59,99 @@ class PositionManager {
     );
   }
 
-  void setToTile(PlayerPiece piece, int tileIndex) {
+  Vector2 _getOffset(PlayerPiece piece, int tileIndex) {
+    final index = piece.playerId;
+
+    const spacing = 6.0;
+
+    return Vector2(0, -index * spacing);
+  }
+
+  void setToTile(
+    PlayerPiece piece,
+    int tileIndex,
+    List<PlayerPiece> allPieces,
+    List<int> allTileIndices,
+  ) {
     final pos = getTilePosition(tileIndex);
+
+    final offset = _getGroupedOffset(
+      piece,
+      tileIndex,
+      allPieces,
+      allTileIndices,
+    );
 
     piece.children.whereType<MoveEffect>().toList().forEach(
       (e) => e.removeFromParent(),
     );
 
     piece.position = Vector2(
-      pos.x - piece.size.x / 2,
-      pos.y - piece.size.y / 2,
+      pos.x - piece.size.x / 2 + offset.x,
+      pos.y - piece.size.y / 2 + offset.y,
     );
   }
 
-  void moveToTile(PlayerPiece piece, int tileIndex) {
+  Vector2 _getGroupedOffset(
+    PlayerPiece piece,
+    int tileIndex,
+    List<PlayerPiece> allPieces,
+    List<int> allTileIndices,
+  ) {
+    final group = <PlayerPiece>[];
+
+    for (int i = 0; i < allPieces.length; i++) {
+      if (allTileIndices[i] == tileIndex) {
+        group.add(allPieces[i]);
+      }
+    }
+
+    final index = group.indexOf(piece);
+    final total = group.length;
+
+    if (total == 1) return Vector2.zero();
+
+    const radius = 14.0;
+
+    final angle = (index / total) * 2 * pi;
+
+    return Vector2(cos(angle) * radius, sin(angle) * radius);
+  }
+
+  void moveToTile(
+    PlayerPiece piece,
+    int tileIndex,
+    List<PlayerPiece> allPieces,
+    List<int> allTileIndices,
+  ) {
     final pos = getTilePosition(tileIndex);
 
+    final offset = _getGroupedOffset(
+      piece,
+      tileIndex,
+      allPieces,
+      allTileIndices,
+    );
+
+    final target = Vector2(
+      pos.x - piece.size.x / 2 + offset.x,
+      pos.y - piece.size.y / 2 + offset.y,
+    );
+
+    // remove old effects
+    final effects = piece.children.whereType<MoveEffect>().toList();
+    for (final e in effects) {
+      e.removeFromParent();
+    }
+
     piece.add(
-      MoveEffect.to(
-        Vector2(pos.x - piece.size.x / 2, pos.y - piece.size.y / 2),
-        EffectController(duration: 0.3, curve: Curves.easeOut),
-      ),
+      SequenceEffect([
+        MoveEffect.by(Vector2(0, -20), EffectController(duration: 0.1)),
+        MoveEffect.to(
+          target,
+          EffectController(duration: 0.25, curve: Curves.easeOutBack),
+        ),
+      ]),
     );
   }
 }
