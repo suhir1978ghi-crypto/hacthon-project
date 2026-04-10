@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 import 'Components/AudioManager.dart';
 import 'Screen/GameWorld/Widgets/ActionButton.dart';
+import 'Screen/GameWorld/Widgets/GameHUD.dart';
 import 'Screen/GameWorld/Widgets/RoundResults.dart';
 import 'Screen/GameWorld/Widgets/TargetCard.dart';
 import 'Screen/HomeScreen/HomeScreen.dart';
@@ -30,6 +31,11 @@ Future<void> main() async {
 
           return ActionBarOverlay(gameWorld: g.gameWorld!);
         },
+        'hud': (context, game) {
+          final g = game as TikiGameScreen;
+          if (g.gameWorld == null) return const SizedBox();
+          return GameHUDOverlay(gameWorld: g.gameWorld!);
+        },
         'roundResult': (context, game) {
           final g = game as TikiGameScreen;
 
@@ -46,7 +52,7 @@ Future<void> main() async {
           return Stack(
             children: [
               Positioned(
-                top: 20,
+                top: 82,
                 right: 20,
                 child: TargetCard(
                   targets: gw.scoreManager.getPlayerTargets(

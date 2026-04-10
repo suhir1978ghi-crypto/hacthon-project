@@ -6,12 +6,14 @@ import 'package:flame/events.dart';
 enum TikiSymbol { sun, moon, leaf }
 
 class Tiki extends SpriteComponent with TapCallbacks {
+  final int id;
   final int index;
   final TikiSymbol symbol;
   final String asset;
   final VoidCallback onTap;
 
   Tiki({
+    required this.id,
     required this.index,
     required this.symbol,
     required this.asset,

@@ -8,7 +8,7 @@ class AudioManager {
 
   AudioManager._internal();
 
-  bool isMuted = true; // TODO: set to false later
+  bool isMuted = false;
   double _volume = 1.0;
   Timer? _fadeTimer;
 

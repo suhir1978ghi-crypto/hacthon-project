@@ -11,8 +11,6 @@ import 'Controllers/ActionManager.dart';
 import 'Controllers/RoundManager.dart';
 import 'Controllers/TurnManager.dart';
 import 'Widgets/ActionButton.dart';
-import 'Widgets/GameHUD.dart';
-import 'Widgets/HUDController.dart';
 import 'Widgets/PlayerPiece.dart';
 
 class GameWorld extends Component with HasGameReference<TikiGameScreen> {
@@ -26,9 +24,6 @@ class GameWorld extends Component with HasGameReference<TikiGameScreen> {
   late final TurnManager turnManager;
   late final ActionManager actionManager;
   late final RoundManager roundManager;
-  late final HUDController hudController;
-
-  late final GameHUD hud;
 
   ActionType selectedAction = ActionType.up1;
 
@@ -51,9 +46,7 @@ class GameWorld extends Component with HasGameReference<TikiGameScreen> {
     roundManager = RoundManager(players);
 
     // HUD
-    hud = GameHUD();
-    hudController = HUDController(hud);
-    add(hud);
+    game.overlays.add('hud');
     game.overlays.add('targetCard');
     // Players
     tileIndices.addAll(List.generate(players, (_) => 0));
@@ -109,23 +102,16 @@ class GameWorld extends Component with HasGameReference<TikiGameScreen> {
     // 🔥 perform ONCE
     stackManager.performAction(selectedAction, index);
 
-    // 🔥 check BEFORE removing
-    final shouldRemove =
-        actionManager.hands[player].where((a) => a == selectedAction).length ==
-        1;
-
-    // 🔥 remove ONCE
-    actionManager.markUsed(player, selectedAction);
+    final removedCompletely = actionManager.useCard(player, selectedAction);
 
     if (stackManager.isRoundOver() || actionManager.allPlayersFinished()) {
       _endRound();
       return;
     }
 
-    if (shouldRemove) {
-      await Future.delayed(const Duration(milliseconds: 300));
+    if (removedCompletely) {
+      await Future.delayed(const Duration(milliseconds: 200));
     }
-
     turnManager.nextTurn();
     _updateUI();
   }
@@ -168,8 +154,6 @@ class GameWorld extends Component with HasGameReference<TikiGameScreen> {
 
   void _updateUI() {
     final player = turnManager.currentPlayer;
-
-    hudController.update(player: player, scores: scoreManager.scores);
 
     _updateActivePiece();
     _highlightValidTikis();

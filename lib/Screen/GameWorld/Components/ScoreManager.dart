@@ -29,12 +29,16 @@ class ScoreManager {
     final t = targets[player];
     int score = 0;
 
-    for (int i = 0; i < stack.length; i++) {
-      final index = stack[i].index;
+    if (stack.length > 0 && stack[0].id == t[0]) {
+      score += 9;
+    }
 
-      if (index == t[0] && i == 0) score += 9;
-      if (index == t[1] && i <= 1) score += 4;
-      if (index == t[2] && i <= 2) score += 2;
+    if (stack.length > 1 && stack[1].id == t[1]) {
+      score += 5;
+    }
+
+    if (stack.length > 2 && stack[2].id == t[2]) {
+      score += 2;
     }
 
     return score;

@@ -29,14 +29,10 @@ class TikiStackManager {
   }
 
   // ================= INIT =================
-
   Future<void> initStack() async {
     tikiStack.clear();
 
-    final random = Random();
-
-    // ✅ 9 UNIQUE assets
-    final assets = [
+    const assets = [
       'tikis/NUI.png',
       'tikis/WIKIWIKI.png',
       'tikis/NANI.png',
@@ -46,9 +42,8 @@ class TikiStackManager {
       'tikis/AKAMAI.png',
       'tikis/HOOKIPA.png',
       'tikis/lOKAHI.png',
-    ]..shuffle();
+    ];
 
-    // ✅ 3 of each symbol
     final symbols = [
       TikiSymbol.sun,
       TikiSymbol.sun,
@@ -59,24 +54,27 @@ class TikiStackManager {
       TikiSymbol.leaf,
       TikiSymbol.leaf,
       TikiSymbol.leaf,
-    ]..shuffle();
+    ];
 
     for (int i = 0; i < 9; i++) {
-      final tiki = Tiki(
+      late Tiki tiki;
+
+      tiki = Tiki(
+        id: i,
         index: i,
         symbol: symbols[i],
         asset: assets[i],
-        onTap: () => onTap(i),
+        onTap: () => onTap(tikiStack.indexOf(tiki)),
       );
 
       tikiStack.add(tiki);
       parent.add(tiki);
     }
 
+    tikiStack.shuffle();
+
     layout(animated: false);
   }
-
-  // ================= LAYOUT =================
 
   void layout({bool animated = true}) {
     for (int i = 0; i < tikiStack.length; i++) {

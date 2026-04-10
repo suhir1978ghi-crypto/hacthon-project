@@ -1,37 +1,105 @@
-import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
 
-class GameHUD extends PositionComponent {
-  int currentPlayer = 0;
-  List<int> scores = [];
+import '../GameWorld.dart';
 
-  final TextComponent turnText = TextComponent();
-  late final TextComponent scoreText = TextComponent();
+class GameHUDOverlay extends StatefulWidget {
+  final GameWorld gameWorld;
+
+  const GameHUDOverlay({super.key, required this.gameWorld});
 
   @override
-  Future<void> onLoad() async {
-    turnText.position = Vector2(20, 20);
-    scoreText.position = Vector2(20, 50);
+  State<GameHUDOverlay> createState() => _GameHUDOverlayState();
+}
 
-    turnText.textRenderer = TextPaint(
-      style: const TextStyle(
-        fontSize: 18,
-        fontWeight: FontWeight.bold,
-        color: Colors.white,
-      ),
-    );
-    scoreText.textRenderer = TextPaint(
-      style: const TextStyle(fontSize: 16, color: Colors.white),
-    );
-    addAll([turnText, scoreText]);
+class _GameHUDOverlayState extends State<GameHUDOverlay> {
+  @override
+  void initState() {
+    super.initState();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) => _loop());
   }
 
-  void updateHUD({required int player, required List<int> scoreList}) {
-    currentPlayer = player;
-    scores = scoreList;
+  void _loop() async {
+    while (mounted) {
+      await Future.delayed(const Duration(milliseconds: 100));
+      setState(() {});
+    }
+  }
 
-    turnText.text = "Turn: P${player + 1}";
-    scoreText.text =
-        "Scores: ${scores.asMap().entries.map((e) => "P${e.key + 1}: ${e.value}").join(", ")}";
+  @override
+  Widget build(BuildContext context) {
+    final scores = widget.gameWorld.scoreManager.scores;
+    final player = widget.gameWorld.turnManager.currentPlayer;
+
+    return Positioned(
+      top: 20,
+      left: 20,
+      right: 20,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          _glassCard(
+            child: Row(
+              children: [
+                const Icon(Icons.person, color: Colors.orange),
+                const SizedBox(width: 6),
+                Text(
+                  "P${player + 1}'s Turn",
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          _glassCard(
+            child: Row(
+              children: List.generate(scores.length, (i) {
+                return Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 6),
+                  child: Column(
+                    children: [
+                      Text(
+                        "P${i + 1}",
+                        style: const TextStyle(
+                          color: Colors.white70,
+                          fontSize: 12,
+                        ),
+                      ),
+                      AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 200),
+                        child: Text(
+                          "${scores[i]}",
+                          key: ValueKey(scores[i]),
+                          style: TextStyle(
+                            color: i == player ? Colors.orange : Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _glassCard({required Widget child}) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: Colors.black.withOpacity(0.4),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.white24),
+      ),
+      child: child,
+    );
   }
 }

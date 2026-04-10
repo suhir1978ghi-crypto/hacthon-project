@@ -27,7 +27,7 @@ class _TargetCardState extends State<TargetCard>
 
   @override
   Widget build(BuildContext context) {
-    const scores = [9, 4, 2];
+    const scores = [9, 5, 2];
 
     return GestureDetector(
       onTap: () {

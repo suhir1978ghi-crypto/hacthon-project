@@ -33,14 +33,22 @@ class ActionManager {
     return hands[player].isNotEmpty;
   }
 
-  void markUsed(int player, ActionType action) {
-    hands[player].remove(action);
+  bool useCard(int player, ActionType action) {
+    final hand = hands[player];
+
+    final index = hand.indexOf(action);
+    if (index == -1) return false;
+
+    hand.removeAt(index);
+
+    return !hand.contains(action);
+  }
+
+  int count(int player, ActionType action) {
+    return hands[player].where((a) => a == action).length;
   }
 
   bool allPlayersFinished() {
-    for (final hand in hands) {
-      if (hand.isNotEmpty) return false;
-    }
-    return true;
+    return hands.every((hand) => hand.isEmpty);
   }
 }
